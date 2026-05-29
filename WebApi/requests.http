@@ -1,0 +1,37 @@
+GET http://localhost:5241
+
+###
+GET http://localhost:5241/blogs
+
+###
+GET http://localhost:5241/blogs/b
+
+###
+POST http://localhost:5241/blogs
+Content-Type: application/json
+
+{
+    "title": "Elon must go",
+    "body": "The world is trying to push elon musk out of planet earth for good."
+}
+
+###
+DELETE http://localhost:5241/blogs/0
+
+###
+PUT http://localhost:5241/blogs/2
+Content-Type: application/json
+
+{
+    "title": "Elon musk go",
+    "body": "The world is trying to push elon musk out of planet earth for good."
+}
+
+###
+GET http://localhost:5241/blogs/report/
+
+###
+GET http://localhost:5241/search?q=dotnet&page=2
+
+###
+GET http://localhost:5241/blogs/fashion/fashion+week?isLiked=true
