@@ -1,68 +1,93 @@
-using Microsoft.AspNetCore.Components.Web;
+// using Microsoft.AspNetCore.Components.Web;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddEndpointsApiExplorer();  // ← Add this
-builder.Services.AddSwaggerGen();
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.File("logs/myApp.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+builder.Host.UseSerilog();
+
+// builder.Services.AddEndpointsApiExplorer();  // ← Add this
+// builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
 // builder.Services.AddHttpLogging((o) => { });
 
 // builder.Services.AddSingleton<IMyService, MyService>();
 // builder.Services.AddScoped<IMyService, MyService>();
-builder.Services.AddTransient<IMyService, MyService>();
+// builder.Services.AddTransient<IMyService, MyService>();
 
 var app = builder.Build();
 
 app.Use(async (context, next) =>
 {
-    var myService = context.RequestServices.GetRequiredService<IMyService>();
-    myService.LogCreation("First Middleware");
-    await next.Invoke();
-});
-app.Use(async (context, next) =>
-{
-    var myService = context.RequestServices.GetRequiredService<IMyService>();
-    myService.LogCreation("Second Middleware");
-    await next.Invoke();
-});
-
-app.MapGet("/", (IMyService myService) =>
-{
-    myService.LogCreation("Root");
-
-    return Results.Ok("Check the console for service creation logs");
+    try
+    {
+        await next();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Global exception caught: {ex}");
+        context.Response.StatusCode = 500;
+        await context.Response.WriteAsync("An unexpected error occured. Please try again later.");
+    }
 });
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// app.Use(async (context, next) =>
+// {
+//     var myService = context.RequestServices.GetRequiredService<IMyService>();
+//     myService.LogCreation("First Middleware");
+//     await next.Invoke();
+// });
+// app.Use(async (context, next) =>
+// {
+//     var myService = context.RequestServices.GetRequiredService<IMyService>();
+//     myService.LogCreation("Second Middleware");
+//     await next.Invoke();
+// });
+
+// app.MapGet("/", (IMyService myService) =>
+// {
+//     myService.LogCreation("Root");
+
+//     return Results.Ok("Check the console for service creation logs");
+// });
+
+// if (app.Environment.IsDevelopment())
+// {
+//     app.UseSwagger();
+//     app.UseSwaggerUI();
+// }
 
 // app.MapGet("/", () => "hello world");
+app.UseRouting();
 app.MapControllers();
 
 app.Run ();
 
-public interface IMyService
-{
-    void LogCreation(string message);
-}
+// public interface IMyService
+// {
+//     void LogCreation(string message);
+// }
 
-public class MyService : IMyService
-{
-    private readonly int _serviceId;
+// public class MyService : IMyService
+// {
+//     private readonly int _serviceId;
 
-    public MyService()
-    {
-        _serviceId = new Random().Next(100000, 999999);
-    }
+//     public MyService()
+//     {
+//         _serviceId = new Random().Next(100000, 999999);
+//     }
 
-    public void LogCreation(string message)
-    {
-        Console.WriteLine($"{message} - Service ID: {_serviceId}");
-    }
-}
+//     public void LogCreation(string message)
+//     {
+//         Console.WriteLine($"{message} - Service ID: {_serviceId}");
+//     }
+// }
 
 // app.UseHttpLogging();
 
