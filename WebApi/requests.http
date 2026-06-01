@@ -35,3 +35,9 @@ GET http://localhost:5241/search?q=dotnet&page=2
 
 ###
 GET http://localhost:5241/blogs/fashion/fashion+week?isLiked=true
+
+###
+GET http://localhost:5241/auto
+
+###
+GET http://localhost:5241/custom-serializer

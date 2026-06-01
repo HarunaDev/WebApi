@@ -1,41 +1,88 @@
 // using Microsoft.AspNetCore.Components.Web;
-using Serilog;
+// using Serilog;
+
+using System.Text.Json;
+using System.Xml.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
-    .WriteTo.File("logs/myApp.txt", rollingInterval: RollingInterval.Day)
-    .CreateLogger();
+// Log.Logger = new LoggerConfiguration()
+//     .WriteTo.Console()
+//     .WriteTo.File("logs/myApp.txt", rollingInterval: RollingInterval.Day)
+//     .CreateLogger();
 
-builder.Host.UseSerilog();
+// builder.Host.UseSerilog();
 
 // builder.Services.AddEndpointsApiExplorer();  // ← Add this
 // builder.Services.AddSwaggerGen();
-builder.Services.AddControllers();
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
+// builder.Services.AddControllers();
+// builder.Logging.ClearProviders();
+// builder.Logging.AddConsole();
 // builder.Services.AddHttpLogging((o) => { });
 
 // builder.Services.AddSingleton<IMyService, MyService>();
 // builder.Services.AddScoped<IMyService, MyService>();
 // builder.Services.AddTransient<IMyService, MyService>();
 
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.KebabCaseLower;
+});
 var app = builder.Build();
 
-app.Use(async (context, next) =>
+var samplePerson = new Person { UserName = "Alice", UserAge = 30 };
+
+app.MapGet("/", () => "I am Root!");
+app.MapGet("/manual-json", () =>
 {
-    try
-    {
-        await next();
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Global exception caught: {ex}");
-        context.Response.StatusCode = 500;
-        await context.Response.WriteAsync("An unexpected error occured. Please try again later.");
-    }
+    var jsonString = JsonSerializer.Serialize(samplePerson);
+    return TypedResults.Text(jsonString, "application/json");
 });
+
+app.MapGet("/custom-serializer", () =>
+{
+    var options = new JsonSerializerOptions
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
+    var customJsonString = JsonSerializer.Serialize(samplePerson, options);
+
+    return TypedResults.Text(customJsonString, "application/json");
+});
+
+app.MapGet("/json", () =>
+{
+    return TypedResults.Json(samplePerson);
+});
+
+app.MapGet("/auto", () =>
+{
+    return samplePerson;
+});
+
+app.MapGet("/xml", () =>
+{
+    var xmlSerializer = new XmlSerializer(typeof(Person));
+    var stringWriter = new StringWriter();
+    xmlSerializer.Serialize(stringWriter, samplePerson);
+    var xmlOutput = stringWriter.ToString();
+    return TypedResults.Text(xmlOutput, "application/xml");
+});
+
+// app.Use(async (context, next) =>
+// {
+//     try
+//     {
+//         await next();
+//     }
+//     catch (Exception ex)
+//     {
+//         Console.WriteLine($"Global exception caught: {ex}");
+//         context.Response.StatusCode = 500;
+//         await context.Response.WriteAsync("An unexpected error occured. Please try again later.");
+//     }
+// });
 
 // app.Use(async (context, next) =>
 // {
@@ -64,10 +111,16 @@ app.Use(async (context, next) =>
 // }
 
 // app.MapGet("/", () => "hello world");
-app.UseRouting();
-app.MapControllers();
+// app.UseRouting();
+// app.MapControllers();
 
-app.Run ();
+app.Run();
+
+public class Person
+{
+    required public string UserName { get; set; }
+    required public int UserAge { get; set; }
+}
 
 // public interface IMyService
 // {
