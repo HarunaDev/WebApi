@@ -37,7 +37,42 @@ GET http://localhost:5241/search?q=dotnet&page=2
 GET http://localhost:5241/blogs/fashion/fashion+week?isLiked=true
 
 ###
-GET http://localhost:5241/auto
+POST http://localhost:5241/auto
+Content-Type: application/json
+
+{
+    "userName": "Alice",
+    "userAge": 25
+}
+
+###
+POST http://localhost:5241/json
+Content-Type: application/json
+
+{
+    "userName": "Bob",
+    "userAge": 37
+}
+
+###
+POST http://localhost:5241/custom
+Content-Type: application/json
+
+{
+    "userName": "Bob",
+    "userAge": 37,
+    "extraField": "This is an extra field"
+}
+
+###
+
+POST http://localhost:5241/xml
+Content-Type: application/xml
+
+<Person>
+<UserName>Borris</UserName>
+<UserAge>50</UserAge>
+</Person>
 
 ###
 GET http://localhost:5241/custom-serializer
