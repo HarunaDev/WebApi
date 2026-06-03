@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.OpenApi;
 using Swashbuckle.AspNetCore;
 
@@ -27,15 +28,15 @@ app.MapGet("/blogs", () =>
     return blogs;
 });
 
-app.MapGet("/blogs/{id}", (int id) =>
+app.MapGet("/blogs/{id}", Results<Ok<Blog>, NotFound>(int id) =>
 {
     if (id < 0 || id >= blogs.Count)
     {
-        return Results.NotFound();
+        return TypedResults.NotFound();
     }
     else
     {
-        return Results.Ok(blogs[id]);
+        return TypedResults.Ok(blogs[id]);
     }
 }).WithOpenApi(operation =>
 {
