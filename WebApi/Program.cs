@@ -15,11 +15,11 @@ var blogs = new List<Blog>
     new Blog { Title = "My second Post", Body = "This is my second post"},
 };
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// if (app.Environment.IsDevelopment())
+// {
+app.UseSwagger();
+app.UseSwaggerUI();
+// }
 
 app.MapGet("/", () => "Hello world");
 
